@@ -15,28 +15,30 @@ struct pcb_t *proc_init(void)
 {
 	static struct pcb_t pcb_array[MAXPROC]; //Static array of pcbs containing MAXPROC elements
 	
-	INIT_LIST_HEAD(&(pcb_3)); //Initialize pcb_3 head
+	INIT_LIST_HEAD(&pcb_3); //Initialize pcb_3 head
 	
-	struct pcb_t *root = &(pcb_array[0]); //Assign first element of pcb_3 to root
-	
-	for(int i = 1; i < MAXPROC; i++) //Iterate for MAXPROC-1
+	struct pcb_t *root = &pcb_array[0]; //Assign first element of free list to root
+	root -> p_parent = NULL; //Root has no parent
+	INIT_LIST_HEAD(&(root -> p_threads); //Initialize root threads
+	INIT_LIST_HEAD(&(root -> p_children)); //Initialize root children
+
+	for(int i = 1; i < MAXPROC; i++) //Iterate for MAXPROC-1 times
 	{
-		struct pcb_t *new_pcb = &pcb_array[i]; //
-		list_add(&(new_pcb -> p_siblings), &(pcb_3));
+		struct pcb_t *new_pcb = &pcb_array[i]; // Pointer to working element of array
+		list_add(&new_pcb -> p_siblings, &pcb_3); //Use p_siblings to manage pcb free list
 	}
 	
-	root -> p_parent = NULL; //Root has no parent
-	INIT_LIST_HEAD(&(root -> p_children)); //Initialize root children
-	INIT_LIST_HEAD(&(root -> p_threads)); //Initialize root threads
-	
-	return root; 
+	return root; // Return pointer to root process
 }
 
 /* alloc a new empty pcb (as a child of p_parent) */
 /* p_parent cannot be NULL */
 struct pcb_t *proc_alloc(struct pcb_t *p_parent)
 {
+	if(p_parent == NULL) return NULL; //Error case 1: a process cannot have no parent
+	if(list_empty(&pcb_3)) return NULL; //Error case 2: no free process in list
 	
+	struct pcb_t *alloc_pcb = container_of(pcb_3.next, struct pcb_t, p_siblings); //Create pointer to first unused item in free list
 }
 
 /* delete a process (properly updating the process tree links) */
@@ -64,7 +66,16 @@ struct tcb_t *proc_firstthread(struct pcb_t *proc)
 /* initialize the data structure */
 void thread_init(void)
 {
+	static struct tcb_t tcb_array[MAXTHREAD]; //Declare static array of tcb of size MAXTHREAD
+
+	INIT_LIST_HEAD(&tcb_3); //Initialize threads free list
 	
+	for(int i = 0; i<MAXTHREAD; i++) //Iterate for MAXTHREAD times
+	{
+		struct tcb_t *new_tcb = &tcb_array[i]; //Pointer to working element of array
+		list_add(&(new_tcb -> t_next), &tcb_3); //Use t_next to manage tcb free list
+	}
+
 }
 
 /* alloc a new tcb (as a thread of process) */
