@@ -21,7 +21,7 @@ struct pcb_t *proc_init(void){
 	//Inizializzo la testa della coda dei processo liberi, poi utilizzata come lista.
 	INIT_LIST_HEAD(listfree_head);
 	//Collego i puntatori p_siblings formando la lista libera.
-	for(i = 1, i < MAXPROC, i++){
+	for(i = 0, i < MAXPROC, i++){
 		//Setto a NULL i puntatori p_parent.
 		INIT_LIST_HEAD(&(pcb_mem[i].p_siblings));
 		INIT_LIST_HEAD(&(pcb_mem[i].p_children));
