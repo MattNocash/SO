@@ -13,7 +13,23 @@ struct list_head msg_3;
 /* the return value is the address of the root process */
 struct pcb_t *proc_init(void)
 {
+	static struct pcb_t pcb_array[MAXPROC]; //Static array of pcbs containing MAXPROC elements
 	
+	INIT_LIST_HEAD(&(pcb_3)); //Initialize pcb_3 head
+	
+	struct pcb_t *root = &(pcb_array[0]); //Assign first element of pcb_3 to root
+	
+	for(int i = 1; i < MAXPROC; i++) //Iterate for MAXPROC-1
+	{
+		struct pcb_t *new_pcb = &pcb_array[i]; //
+		list_add(&(new_pcb -> p_siblings), &(pcb_3));
+	}
+	
+	root -> p_parent = NULL; //Root has no parent
+	INIT_LIST_HEAD(&(root -> p_children)); //Initialize root children
+	INIT_LIST_HEAD(&(root -> p_threads)); //Initialize root threads
+	
+	return root; 
 }
 
 /* alloc a new empty pcb (as a child of p_parent) */
