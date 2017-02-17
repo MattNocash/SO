@@ -57,7 +57,9 @@ int proc_delete(struct pcb_t *oldproc)
 	if(!(list_empty(&oldproc->p_children))) return -1; //Error 1: cannot delete process if 
 	if(!(list_empty(&oldproc->p_threads))) return -1; //it has active threads or children
 
-	list_del(&oldproc->p_parent); //Remove oldproc from parent
+	list_del(&oldproc->p_siblings); //Remove oldproc from parent`s children list
+	oldproc->p_parent = NULL; //Remove reference to parent
+	
 	list_add(&oldproc->p_siblings, &pcb_3); //Add oldproc back to free list
 
 	return 0;
@@ -68,7 +70,7 @@ struct pcb_t *proc_firstchild(struct pcb_t *proc)
 {
 	if(list_empty(&proc->p_children) return NULL; //Error 1: no children returns NULL
 	
-	return container_of(&(proc->p_children)->next, struct pcb_t, p_siblings; //Return pointer to process' first child
+	return container_of(&(proc->p_children)->next, struct pcb_t, p_siblings); //Return pointer to process' first child
 }
 
 /* return the pointer to the first thread (NULL if the process has no threads) */
@@ -76,7 +78,7 @@ struct tcb_t *proc_firstthread(struct pcb_t *proc)
 {
 	if(list_empty(&proc->p_threads)) return NULL; //Error 1: no threads returns NULL
 	
-	return container_of(&(proc->p_threads)->next, struct tcb_t, t_next; //Return pointer to process' first thread
+	return container_of(&(proc->p_threads)->next, struct tcb_t, t_next); //Return pointer to process' first thread
 }
 
 /****************************************** THREAD ALLOCATION ****************/
@@ -91,7 +93,7 @@ void thread_init(void)
 	for(int i = 0; i<MAXTHREAD; i++) //Iterate for MAXTHREAD times
 	{
 		struct tcb_t *new_tcb = &tcb_array[i]; //Pointer to working element of array
-		list_add(&(new_tcb->t_next), &tcb_3); //Use t_next to manage tcb free list
+		list_add(&new_tcb->t_next, &tcb_3); //Use t_next to manage tcb free list
 	}
 }
 
