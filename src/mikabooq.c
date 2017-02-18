@@ -1,10 +1,35 @@
+/*****************************************************************************
+ * mikabooq.c Year 2017 v.1.0 February 19, 2017                              *
+ * Copyright 2017                                                            *
+ *  Andrea Aldrovandi, Matteo Cassano, Marcello Mazzoleni, Soukaina Harrati   *
+ *                                                                           *
+ * This file is part of MiKABoO.                                             *
+ *                                                                           *
+ * MiKABoO is free software; you can redistribute it and/or modify it under  *
+ * the terms of the GNU General Public License as published by the Free      *
+ * Software Foundation; either version 2 of the License, or (at your option) *
+ * any later version.                                                        *
+ * This program is distributed in the hope that it will be useful, but       *
+ * WITHOUT ANY WARRANTY; without even the implied warranty of                *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General *
+ * Public License for more details.                                          *
+ * You should have received a copy of the GNU General Public License along   *
+ * with this program; if not, write to the Free Software Foundation, Inc.,   *
+ * 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA.                  *
+ *****************************************************************************/
+
 #include "mikabooq.h"
 #include "const.h"
+#include <stdint.h>
 
 //Free list heads, 3 sounds like free
 struct list_head pcb_3;
 struct list_head tcb_3;
 struct list_head msg_3;
+
+static struct pcb_t pcb_array[MAXPROC]; //Static array of pcbs containing MAXPROC elements
+static struct tcb_t tcb_array[MAXTHREAD]; //Declare static array of tcb of size MAXTHREAD
+static struct msg_t msg_array[MAXMSG]; //Declare static array of msg of size MAXMSG
 
 /************************************** PROC MGMT ************************/
 
@@ -12,8 +37,6 @@ struct list_head msg_3;
 /* the return value is the address of the root process */
 struct pcb_t *proc_init(void)
 {
-	static struct pcb_t pcb_array[MAXPROC]; //Static array of pcbs containing MAXPROC elements
-	
 	INIT_LIST_HEAD(&pcb_3); //Initialize pcb_3 head
 	
 	struct pcb_t *root = &pcb_array[0]; //Assign first element of free list to root
@@ -86,9 +109,7 @@ struct tcb_t *proc_firstthread(struct pcb_t *proc)
 /* initialize the data structure */
 void thread_init(void)
 {
-	static struct tcb_t tcb_array[MAXTHREAD]; //Declare static array of tcb of size MAXTHREAD
-
-	INIT_LIST_HEAD(&tcb_3); //Initialize threads free list
+  INIT_LIST_HEAD(&tcb_3); //Initialize threads free list
 	
 	for(int i = 0; i<MAXTHREAD; i++) //Iterate for MAXTHREAD times
 	{
@@ -174,8 +195,6 @@ struct tcb_t *thread_dequeue(struct list_head *queue)
 /* the return value is the address of the root process */
 void msgq_init(void)
 {
-	static struct msg_t msg_array[MAXMSG]; //Declare static array of msg of size MAXMSG
-
 	INIT_LIST_HEAD(&msg_3); //Initialize messages free list
 	
 	for(int i = 0; i<MAXMSG; i++) //Iterate for MAXTHREAD times
