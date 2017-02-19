@@ -15,17 +15,17 @@ ODIR = build
 _OBJ = mikabooq.o p1test.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
-uarm_libs = /usr/include/uarm/ldscripts/elf32ltsarm.h.uarmcore.x -o mikaboo /usr/include/uarm/crtso.o /usr/include/uarm/libuarm.o
+uarm_libs = /usr/include/uarm/ldscripts/elf32ltsarm.h.uarmcore.x /usr/include/uarm/crtso.o /usr/include/uarm/libuarm.o
 
-all: mikaboo
+all: mikaboo p1test
 
 mikaboo: $(OBJ)
-	$(LD) $(LDFLAGS) $(uarm_libs)
-	elf2uarm -k mikaboo
+	$(LD) $(LDFLAGS) $(uarm_libs) -o $(patsubst %,$(ODIR)/%,mikaboo.elf) $(OBJ)
+	elf2uarm -k $(patsubst %,$(ODIR)/%,mikaboo.elf)
 
 p1test: $(OBJ)
-	$(LD) $(LDFLAGS) $(uarm_libs)
-	elf2uarm -k p1test
+	$(LD) $(LDFLAGS) $(uarm_libs) -o $(patsubst %,$(ODIR)/%,p1test.elf) $(OBJ)
+	elf2uarm -k $(patsubst %,$(ODIR)/%,p1test.elf)
 
 $(ODIR)/p1test.o: p1test.c $(uarm_heads) $(DEPS)
 	$(CC) -o $@ p1test.c $(CFLAGS)
@@ -36,7 +36,9 @@ $(ODIR)/mikabooq.o: mikabooq.c $(DEPS)
 .PHONY: clean
 
 clean:
-	rm -rf *o mikaboo
+	rm -rf *o mikaboo.elf
+	rm -rf *o p1test.elf
 
 cleanall:
-	rm -rf *o mikaboo mikaboo.core.uarm mikaboo.stab.uarm
+	rm -rf *o mikaboo.elf mikaboo.elf.core.uarm mikaboo.elf.stab.uarm
+	rm -rf *o p1test.elf p1test.elf.core.uarm p1test.elf.stab.uarm
