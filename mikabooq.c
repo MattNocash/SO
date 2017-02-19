@@ -44,7 +44,8 @@ struct pcb_t *proc_init(void)
 	INIT_LIST_HEAD(&root->p_threads); //Initialize root threads
 	INIT_LIST_HEAD(&root->p_children); //Initialize root children
 
-	for(int i = 1; i < MAXPROC; i++) //Iterate for MAXPROC-1 times
+	int i;
+	for(i = 1; i < MAXPROC; i++) //Iterate for MAXPROC-1 times
 	{
 		struct pcb_t *new_pcb = &pcb_array[i]; // Pointer to working element of array
 		list_add(&new_pcb->p_siblings, &pcb_3); //Use p_siblings to manage pcb free list
@@ -111,7 +112,8 @@ void thread_init(void)
 {
   INIT_LIST_HEAD(&tcb_3); //Initialize threads free list
 	
-	for(int i = 0; i<MAXTHREAD; i++) //Iterate for MAXTHREAD times
+	int i;
+	for(i = 0; i<MAXTHREAD; i++) //Iterate for MAXTHREAD times
 	{
 		struct tcb_t *new_tcb = &tcb_array[i]; //Pointer to working element of array
 		list_add(&new_tcb->t_next, &tcb_3); //Use t_next to manage tcb free list
@@ -161,7 +163,7 @@ int thread_free(struct tcb_t *oldthread)
 /* add a tcb to the scheduling queue */
 void thread_enqueue(struct tcb_t *new, struct list_head *queue)
 {
-	list_add(&new->t_sched, queue); //Add tcb to queue
+	list_add(&(new->t_sched), &queue); //Add tcb to queue
 }
 
 /* return the head element of a scheduling queue.
@@ -171,11 +173,11 @@ struct tcb_t *thread_qhead(struct list_head *queue)
 {
 	if(list_empty(queue)) return NULL; //Error 1: queue is empty
 
-	struct tcb_t *thread_c = container_of(queue, struct tcb_t, t_sched); //Find pointer to tcb struct from t_sched field
+	//struct tcb_t *thread_c = container_of(queue->next, struct tcb_t, t_sched); //Find pointer to tcb struct from t_sched field
 
 
-	struct list_head *temp_list = thread_c->t_pcb->p_threads.next; //Find first element of thread's process' queue
-	return container_of(temp_list, struct tcb_t, t_next); //Find pointer to tcb struct from t_next
+	//struct list_head *temp_list = thread_c->t_pcb->p_threads.next; //Find first element of thread's process' queue
+	return container_of(queue->prev, struct tcb_t, t_sched); //Find pointer to tcb struct from t_next
 }
 
 /* dequeue element from queue and return it
@@ -197,7 +199,8 @@ void msgq_init(void)
 {
 	INIT_LIST_HEAD(&msg_3); //Initialize messages free list
 	
-	for(int i = 0; i<MAXMSG; i++) //Iterate for MAXTHREAD times
+	int i;
+	for(i = 0; i<MAXMSG; i++) //Iterate for MAXTHREAD times
 	{
 		struct msg_t *new_msg = &msg_array[i]; //Pointer to working element of array
 		list_add(&new_msg->m_next, &msg_3); //Use m_next to manage msg free list
