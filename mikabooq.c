@@ -213,7 +213,7 @@ int msgq_add(struct tcb_t *sender, struct tcb_t *destination, uintptr_t value)
 	if(sender == NULL) return -1; //Error 2: No sender specified
 	if(destination == NULL) return -1; //Error 3: no destination specified
 
-	struct msg_t * new_msg = container_of(&msg_3->next, struct msg_t, m_next); //Find pointer to first element of free list
+	struct msg_t *new_msg = container_of(&msg_3->next, struct msg_t, m_next); //Find pointer to first element of free list
 
 	list_del(&msg_3->next); //Remove element from free list
 
@@ -234,6 +234,56 @@ int msgq_add(struct tcb_t *sender, struct tcb_t *destination, uintptr_t value)
 	 return 0 and store the message payload in *value otherwise. */
 int msgq_get(struct tcb_t **sender, struct tcb_t *destination, uintptr_t *value)
 {
+	struct msgq_t *new_msg; //Working variable
+
+	if(sender == NULL) //Case 1
+	{
+		if(list_empty(&destination->t_msgq)) return -1; //No messages in queue
+
+		new_msg = container_of(&destination->t_msgq->next, struct msg_t,m_next); //Assign first pending message of thread destination
+
+		*value = new_msg->m_value; //Store message value
+
+		list_del(&new_msg->m_next); //Delete message from thread queue
+		list_add(&new_msg->m_next, &msg_3); //Add message to free list
+
+		return 0; //Return 0 for case 1 success
+	} else if(sender != NULL && *sender == NULL) { //Case 2
+		if(list_empty(&destination->t_msgq)) return -1; //No messages in queue
+
+		new_msg = container_of(&destination->t_msgq->next, struct msg_t,m_next); //Assign first pending message of thread destination
+		
+		*value = new_msg->m_value; //Store message value
+		*sender = &new_msg->m_sender; //Store sender tcb address
+
+		list_del(&new_msg->m_next); //Delete message from thread queue
+		list_add(&new_msg->m_next, &msg_3); //Add message to free list
+
+		return 0; //Return 0 for case 2 success
+	} else if(sender != NULL && *sender != NULL) { //Case 3
+		if(list_empty(&destination->t_msgq)) return -1; //No messages in queue
+
+		int match = 0; //Checking variable
+		list_for_each_entry(new_msg, &destination->t_msgq, m_next) //Iterate for every element in queue
+		{
+			if(new_msg->m_sender == *sender) //If sender is the same
+			{
+				match = 1; //Match!
+				break; //Stop iterating
+			}
+		}
+
+		if(match) //If message is found
+		{
+			*value = new_msg->m_value; //Store message value
+
+			list_del(&new_msg->m_next); //Delete message from thread queue
+			list_add(&new_msg->m_next, &msg_3); //Add message to free list
+		
+			return 0; //Return 0 for case 3 success
+		}
+	}
 	
+	return -1; //Error: No message matches any cases
 }
 

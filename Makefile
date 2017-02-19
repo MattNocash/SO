@@ -1,20 +1,42 @@
-/*****************************************************************************
- * Makefile Year 2017 v.1.0 February 19, 2017                                *
- * Copyright 2017                                                            *
- *  Andrea Aldrovandi, Matteo Cassano, Marcello Mazzoleni, Soukaina Harrati  *
- *                                                                           *
- * This file is part of MiKABoO.                                             *
- *                                                                           *
- * MiKABoO is free software; you can redistribute it and/or modify it under  *
- * the terms of the GNU General Public License as published by the Free      *
- * Software Foundation; either version 2 of the License, or (at your option) *
- * any later version.                                                        *
- * This program is distributed in the hope that it will be useful, but       *
- * WITHOUT ANY WARRANTY; without even the implied warranty of                *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General *
- * Public License for more details.                                          *
- * You should have received a copy of the GNU General Public License along   *
- * with this program; if not, write to the Free Software Foundation, Inc.,   *
- * 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA.                  *
- *****************************************************************************/
 
+IDIR = ./include
+CC = arm-none-eabi-gcc
+CFLAGS = -mcpu=arm7tdmi -c -Wall -I/usr/include/uarm -I/usr/include -I/usr/include/bits -I$(IDIR)
+LD = arm-none-eabi-ld
+LDFLAGS = -T
+
+_DEPS = mikabooq.h const.h
+DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
+
+uarm_heads	= include/listx.h /usr/include/uarm/libuarm.h /usr/include/uarm/uARMconst.h /usr/include/uarm/uARMtypes.h /usr/include/uarm/arch.h
+
+ODIR = build
+
+_OBJ = mikabooq.o p1test.o
+OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
+
+uarm_libs = /usr/include/uarm/ldscripts/elf32ltsarm.h.uarmcore.x -o mikaboo /usr/include/uarm/crtso.o /usr/include/uarm/libuarm.o
+
+all: mikaboo
+
+$(ODIR)/p1test.o: p1test.c $(uarm_heads) $(DEPS)
+	$(CC) -o $@ p1test.c $(CFLAGS)
+
+$(ODIR)/mikabooq.o: mikabooq.c $(DEPS)
+	$(CC) -o $@ mikabooq.c $(CFLAGS)
+
+mikaboo: $(OBJ)
+	$(LD) $(LDFLAGS) $(uarm_libs)
+	elf2uarm -k mikaboo
+
+p1test: $(OBJ)
+	$(LD) $(LDFLAGS) $(uarm_libs)
+	elf2uarm -k p1test
+
+.PHONY: clean
+
+clean:
+	rm -rf *o mikaboo
+
+cleanall:
+	rm -rf *o mikaboo mikaboo.core.uarm mikaboo.stab.uarm
