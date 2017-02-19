@@ -173,7 +173,7 @@ struct tcb_t *thread_qhead(struct list_head *queue)
 {
 	if(list_empty(queue)) return NULL; //Error 1: queue is empty
 
-	return container_of(queue->prev, struct tcb_t, t_sched); //Find pointer to tcb struct from t_next
+	return container_of(queue->prev, struct tcb_t, t_sched); //return tcb_t pointed to by t_sched of last queue member
 }
 
 /* dequeue element from queue and return it
@@ -182,11 +182,11 @@ struct tcb_t *thread_dequeue(struct list_head *queue)
 {
 	if(list_empty(queue)) return NULL; //Error 1: queue is empty
 
-	struct list_head *deq_thread = queue->prev;
-	//deq_thread = queue->next;
-	list_del(queue->prev);
+	struct list_head *deq_thread = queue->prev; //Select last element of queue
+	
+	list_del(queue->prev); //Unlink last element from queue
 
-	return container_of(deq_thread, struct tcb_t, t_sched);	
+	return container_of(deq_thread, struct tcb_t, t_sched); //Return tcb_t pointed to by t_sched of dequeued thread	
 }
 
 /*************************** MSG QUEUE ************************/
