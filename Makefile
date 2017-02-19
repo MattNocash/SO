@@ -19,12 +19,6 @@ uarm_libs = /usr/include/uarm/ldscripts/elf32ltsarm.h.uarmcore.x -o mikaboo /usr
 
 all: mikaboo
 
-$(ODIR)/p1test.o: p1test.c $(uarm_heads) $(DEPS)
-	$(CC) -o $@ p1test.c $(CFLAGS)
-
-$(ODIR)/mikabooq.o: mikabooq.c $(DEPS)
-	$(CC) -o $@ mikabooq.c $(CFLAGS)
-
 mikaboo: $(OBJ)
 	$(LD) $(LDFLAGS) $(uarm_libs)
 	elf2uarm -k mikaboo
@@ -32,6 +26,12 @@ mikaboo: $(OBJ)
 p1test: $(OBJ)
 	$(LD) $(LDFLAGS) $(uarm_libs)
 	elf2uarm -k p1test
+
+$(ODIR)/p1test.o: p1test.c $(uarm_heads) $(DEPS)
+	$(CC) -o $@ p1test.c $(CFLAGS)
+
+$(ODIR)/mikabooq.o: mikabooq.c $(DEPS)
+	$(CC) -o $@ mikabooq.c $(CFLAGS)
 
 .PHONY: clean
 

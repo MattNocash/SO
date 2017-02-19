@@ -60,9 +60,9 @@ struct pcb_t *proc_alloc(struct pcb_t *p_parent)
 	if(p_parent == NULL) return NULL; //Error case 1: a process cannot have no parent
 	if(list_empty(&pcb_3)) return NULL; //Error case 2: no free process in list
 	
-	struct pcb_t *alloc_pcb = container_of(&pcb_3->next, struct pcb_t, p_siblings); //Create pointer to first unused item in free list
+	struct pcb_t *alloc_pcb = container_of(pcb_3.next, struct pcb_t, p_siblings); //Create pointer to first unused item in free list
 
-	list_del(&pcb_3->next); //Remove pcb from free list
+	list_del(pcb_3.next); //Remove pcb from free list
 
 	alloc_pcb->p_parent=p_parent; //Assign p_parent to pcb
 	INIT_LIST_HEAD(&alloc_pcb->p_threads); //Initialize pcb threads
@@ -91,9 +91,9 @@ int proc_delete(struct pcb_t *oldproc)
 /* return the pointer to the first child (NULL if the process has no children) */
 struct pcb_t *proc_firstchild(struct pcb_t *proc)
 {
-	if(list_empty(&proc->p_children) return NULL; //Error 1: no children returns NULL
+	if(list_empty(&proc->p_children)) return NULL; //Error 1: no children returns NULL
 	
-	return container_of(&(proc->p_children)->next, struct pcb_t, p_siblings); //Return pointer to process' first child
+	return container_of(proc->p_children.next, struct pcb_t, p_siblings); //Return pointer to process' first child
 }
 
 /* return the pointer to the first thread (NULL if the process has no threads) */
@@ -101,7 +101,7 @@ struct tcb_t *proc_firstthread(struct pcb_t *proc)
 {
 	if(list_empty(&proc->p_threads)) return NULL; //Error 1: no threads returns NULL
 	
-	return container_of(&(proc->p_threads)->next, struct tcb_t, t_next); //Return pointer to process' first thread
+	return container_of(proc->p_threads.next, struct tcb_t, t_next); //Return pointer to process' first thread
 }
 
 /****************************************** THREAD ALLOCATION ****************/
@@ -126,15 +126,15 @@ struct tcb_t *thread_alloc(struct pcb_t *process)
 	if(process == NULL) return NULL; //Error 1: process cannot be NULL
 	if(list_empty(&tcb_3)) return NULL; //Free threads list is empty
 
-	struct tcb_t * alloc_tcb = container_of(&tcb_3->next, struct tcb_t, t_next);
+	struct tcb_t * alloc_tcb = container_of(tcb_3.next, struct tcb_t, t_next);
 
-	list_del(&tcb_3->next); // Remove the new tcb from the free threads list.
+	list_del(tcb_3.next); // Remove the new tcb from the free threads list.
 
 	alloc_tcb->t_pcb = process; //Link thread to process
 
-	INIT_LIST_HEAD(&t_next); //Initialize tcb thread list
-	INIT_LIST_HEAD(&t_sched); //Initialize tcb schedule list
-	INIT_LIST_HEAD(&t_msgq); //Initialize tcb message queue list
+	INIT_LIST_HEAD(&alloc_tcb->t_next); //Initialize tcb thread list
+	INIT_LIST_HEAD(&alloc_tcb->t_sched); //Initialize tcb schedule list
+	INIT_LIST_HEAD(&alloc_tcb->t_msgq); //Initialize tcb message queue list
 
 	list_add(&alloc_tcb->t_next, &process->p_threads); //Add tcb to process' threads list
 
@@ -146,7 +146,7 @@ struct tcb_t *thread_alloc(struct pcb_t *process)
 /* it fails if the message queue is not empty (returning -1) */
 int thread_free(struct tcb_t *oldthread)
 {
-	if(!(list_empty(&(oldthread->t_msgq))) return -1; //Error 1: message queue not empty
+	if(!(list_empty(&(oldthread->t_msgq)))) return -1; //Error 1: message queue not empty
 
 	list_del(&oldthread->t_next); //Remove thread from list
 
@@ -161,7 +161,7 @@ int thread_free(struct tcb_t *oldthread)
 /* add a tcb to the scheduling queue */
 void thread_enqueue(struct tcb_t *new, struct list_head *queue)
 {
-	list_add(&new->t_sched, &queue); //Add tcb to queue
+	list_add(&new->t_sched, queue); //Add tcb to queue
 }
 
 /* return the head element of a scheduling queue.
@@ -169,9 +169,9 @@ void thread_enqueue(struct tcb_t *new, struct list_head *queue)
 	 return NULL if the list is empty */
 struct tcb_t *thread_qhead(struct list_head *queue)
 {
-	if(list_empty(&queue)) return NULL; //Error 1: queue is empty
+	if(list_empty(queue)) return NULL; //Error 1: queue is empty
 
-	struct tcb_t *thread_c = container_of(&queue, struct tcb_t, t_sched); //Find pointer to tcb struct from t_sched field
+	struct tcb_t *thread_c = container_of(queue, struct tcb_t, t_sched); //Find pointer to tcb struct from t_sched field
 
 
 	struct list_head *temp_list = thread_c->t_pcb->p_threads.next; //Find first element of thread's process' queue
@@ -182,11 +182,11 @@ struct tcb_t *thread_qhead(struct list_head *queue)
 	 return NULL if the list is empty */
 struct tcb_t *thread_dequeue(struct list_head *queue)
 {
-	if(list_empty(&queue)) return NULL; //Error 1: queue is empty
+	if(list_empty(queue)) return NULL; //Error 1: queue is empty
 
-	list_del(&queue); 
+	list_del(queue); 
 
-	return container_of(&queue, struct tcb_t, t_sched);
+	return container_of(queue, struct tcb_t, t_sched);
 	
 }
 
@@ -200,7 +200,7 @@ void msgq_init(void)
 	for(int i = 0; i<MAXMSG; i++) //Iterate for MAXTHREAD times
 	{
 		struct msg_t *new_msg = &msg_array[i]; //Pointer to working element of array
-		list_add(&(msg_tcb->m_next), &msg_3); //Use m_next to manage msg free list
+		list_add(&new_msg->m_next, &msg_3); //Use m_next to manage msg free list
 	}
 
 }
@@ -213,9 +213,9 @@ int msgq_add(struct tcb_t *sender, struct tcb_t *destination, uintptr_t value)
 	if(sender == NULL) return -1; //Error 2: No sender specified
 	if(destination == NULL) return -1; //Error 3: no destination specified
 
-	struct msg_t *new_msg = container_of(&msg_3->next, struct msg_t, m_next); //Find pointer to first element of free list
+	struct msg_t *new_msg = container_of(msg_3.next, struct msg_t, m_next); //Find pointer to first element of free list
 
-	list_del(&msg_3->next); //Remove element from free list
+	list_del(msg_3.next); //Remove element from free list
 
 	new_msg->m_sender = sender; //Assign sender
 	new_msg->m_value = value; //Assign value
@@ -234,13 +234,13 @@ int msgq_add(struct tcb_t *sender, struct tcb_t *destination, uintptr_t value)
 	 return 0 and store the message payload in *value otherwise. */
 int msgq_get(struct tcb_t **sender, struct tcb_t *destination, uintptr_t *value)
 {
-	struct msgq_t *new_msg; //Working variable
+	struct msg_t *new_msg; //Working variable
 
 	if(sender == NULL) //Case 1
 	{
 		if(list_empty(&destination->t_msgq)) return -1; //No messages in queue
 
-		new_msg = container_of(&destination->t_msgq->next, struct msg_t,m_next); //Assign first pending message of thread destination
+		new_msg = container_of((destination->t_msgq).next, struct msg_t, m_next); //Assign first pending message of thread destination
 
 		*value = new_msg->m_value; //Store message value
 
@@ -251,10 +251,10 @@ int msgq_get(struct tcb_t **sender, struct tcb_t *destination, uintptr_t *value)
 	} else if(sender != NULL && *sender == NULL) { //Case 2
 		if(list_empty(&destination->t_msgq)) return -1; //No messages in queue
 
-		new_msg = container_of(&destination->t_msgq->next, struct msg_t,m_next); //Assign first pending message of thread destination
+		new_msg = container_of(destination->t_msgq.next, struct msg_t,m_next); //Assign first pending message of thread destination
 		
 		*value = new_msg->m_value; //Store message value
-		*sender = &new_msg->m_sender; //Store sender tcb address
+		*sender = new_msg->m_sender; //Store sender tcb address
 
 		list_del(&new_msg->m_next); //Delete message from thread queue
 		list_add(&new_msg->m_next, &msg_3); //Add message to free list
