@@ -163,7 +163,7 @@ int thread_free(struct tcb_t *oldthread)
 /* add a tcb to the scheduling queue */
 void thread_enqueue(struct tcb_t *new, struct list_head *queue)
 {
-	list_add(&(new->t_sched), &queue); //Add tcb to queue
+	list_add(&new->t_sched, queue); //Add tcb to queue
 }
 
 /* return the head element of a scheduling queue.
@@ -173,10 +173,6 @@ struct tcb_t *thread_qhead(struct list_head *queue)
 {
 	if(list_empty(queue)) return NULL; //Error 1: queue is empty
 
-	//struct tcb_t *thread_c = container_of(queue->next, struct tcb_t, t_sched); //Find pointer to tcb struct from t_sched field
-
-
-	//struct list_head *temp_list = thread_c->t_pcb->p_threads.next; //Find first element of thread's process' queue
 	return container_of(queue->prev, struct tcb_t, t_sched); //Find pointer to tcb struct from t_next
 }
 
@@ -186,10 +182,11 @@ struct tcb_t *thread_dequeue(struct list_head *queue)
 {
 	if(list_empty(queue)) return NULL; //Error 1: queue is empty
 
-	list_del(queue); 
+	struct list_head *deq_thread = queue->prev;
+	//deq_thread = queue->next;
+	list_del(queue->prev);
 
-	return container_of(queue, struct tcb_t, t_sched);
-	
+	return container_of(deq_thread, struct tcb_t, t_sched);	
 }
 
 /*************************** MSG QUEUE ************************/
@@ -243,7 +240,7 @@ int msgq_get(struct tcb_t **sender, struct tcb_t *destination, uintptr_t *value)
 	{
 		if(list_empty(&destination->t_msgq)) return -1; //No messages in queue
 
-		new_msg = container_of((destination->t_msgq).next, struct msg_t, m_next); //Assign first pending message of thread destination
+		new_msg = container_of((destination->t_msgq).prev, struct msg_t, m_next); //Assign first pending message of thread destination
 
 		*value = new_msg->m_value; //Store message value
 
@@ -254,7 +251,7 @@ int msgq_get(struct tcb_t **sender, struct tcb_t *destination, uintptr_t *value)
 	} else if(sender != NULL && *sender == NULL) { //Case 2
 		if(list_empty(&destination->t_msgq)) return -1; //No messages in queue
 
-		new_msg = container_of(destination->t_msgq.next, struct msg_t,m_next); //Assign first pending message of thread destination
+		new_msg = container_of(destination->t_msgq.prev, struct msg_t,m_next); //Assign first pending message of thread destination
 		
 		*value = new_msg->m_value; //Store message value
 		*sender = new_msg->m_sender; //Store sender tcb address
@@ -267,7 +264,7 @@ int msgq_get(struct tcb_t **sender, struct tcb_t *destination, uintptr_t *value)
 		if(list_empty(&destination->t_msgq)) return -1; //No messages in queue
 
 		int match = 0; //Checking variable
-		list_for_each_entry(new_msg, &destination->t_msgq, m_next) //Iterate for every element in queue
+		list_for_each_entry_reverse(new_msg, &destination->t_msgq, m_next) //Iterate for every element in queue
 		{
 			if(new_msg->m_sender == *sender) //If sender is the same
 			{

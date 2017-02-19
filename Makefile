@@ -36,9 +36,7 @@ $(ODIR)/mikabooq.o: mikabooq.c $(DEPS)
 .PHONY: clean
 
 clean:
-	rm -rf *o mikaboo.elf
-	rm -rf *o p1test.elf
+	rm -rf $(ODIR)/*o $(ODIR)/*elf
 
 cleanall:
-	rm -rf *o mikaboo.elf mikaboo.elf.core.uarm mikaboo.elf.stab.uarm
-	rm -rf *o p1test.elf p1test.elf.core.uarm p1test.elf.stab.uarm
+	rm -rf $(ODIR)/*o $(ODIR)/*elf $(ODIR)/*uarm
