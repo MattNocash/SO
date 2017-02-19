@@ -128,15 +128,15 @@ struct tcb_t *thread_alloc(struct pcb_t *process)
 
 	struct tcb_t * alloc_tcb = container_of(&tcb_3->next, struct tcb_t, t_next);
 
-	list_del(&tcb_3->next); // remove the new tcb from the free threads list.
+	list_del(&tcb_3->next); // Remove the new tcb from the free threads list.
 
-	alloc_tcb->t_pcb = process; //link the new tcb to the process.
+	alloc_tcb->t_pcb = process; //Link thread to process
 
-	INIT_LIST_HEAD(&t_next);
-	INIT_LIST_HEAD(&t_sched);
-	INIT_LIST_HEAD(&t_msgq);
+	INIT_LIST_HEAD(&t_next); //Initialize tcb thread list
+	INIT_LIST_HEAD(&t_sched); //Initialize tcb schedule list
+	INIT_LIST_HEAD(&t_msgq); //Initialize tcb message queue list
 
-	list_add(&(alloc_tcb->t_next), &(process->p_threads));
+	list_add(&alloc_tcb->t_next, &process->p_threads); //Add tcb to process' threads list
 
 	return alloc_tcb; //Return reference to the new thread for success
 }
@@ -148,11 +148,11 @@ int thread_free(struct tcb_t *oldthread)
 {
 	if(!(list_empty(&(oldthread->t_msgq))) return -1; //Error 1: message queue not empty
 
-	list_del(&(oldthread->t_next));
+	list_del(&oldthread->t_next); //Remove thread from list
 
-	list_add(&(oldthread->t_next), &tcb_3);
+	list_add(&(oldthread->t_next), &tcb_3); //Put thread back on free list
 
-	return 0;
+	return 0; //Return 0 for success
 
 }
 
@@ -161,7 +161,7 @@ int thread_free(struct tcb_t *oldthread)
 /* add a tcb to the scheduling queue */
 void thread_enqueue(struct tcb_t *new, struct list_head *queue)
 {
-	list_add(&(new->t_sched), &queue);
+	list_add(&new->t_sched, &queue); //Add tcb to queue
 }
 
 /* return the head element of a scheduling queue.
@@ -171,19 +171,20 @@ struct tcb_t *thread_qhead(struct list_head *queue)
 {
 	if(list_empty(&queue)) return NULL; //Error 1: queue is empty
 
-	struct tcb_t * thread_c = container_of(&queue, struct tcb_t, t_sched);
+	struct tcb_t *thread_c = container_of(&queue, struct tcb_t, t_sched); //Find pointer to tcb struct from t_sched field
 
-	struct list_head * temp_list = thread_c->t_pcb->p_threads.next;
-	return container_of(temp_list, struct tcb_t, t_next);
+
+	struct list_head *temp_list = thread_c->t_pcb->p_threads.next; //Find first element of thread's process' queue
+	return container_of(temp_list, struct tcb_t, t_next); //Find pointer to tcb struct from t_next
 }
 
-/* get the first element of a scheduling queue.
+/* dequeue element from queue and return it
 	 return NULL if the list is empty */
 struct tcb_t *thread_dequeue(struct list_head *queue)
 {
 	if(list_empty(&queue)) return NULL; //Error 1: queue is empty
 
-	list_del(&queue);
+	list_del(&queue); 
 
 	return container_of(&queue, struct tcb_t, t_sched);
 	
@@ -192,7 +193,6 @@ struct tcb_t *thread_dequeue(struct list_head *queue)
 /*************************** MSG QUEUE ************************/
 
 /* initialize the data structure */
-/* the return value is the address of the root process */
 void msgq_init(void)
 {
 	INIT_LIST_HEAD(&msg_3); //Initialize messages free list
@@ -209,18 +209,20 @@ void msgq_init(void)
 /* msgq_add fails (returning -1) if no more msgq elements are available */
 int msgq_add(struct tcb_t *sender, struct tcb_t *destination, uintptr_t value)
 {
-	if(list_empty(&msg_3)) return -1;
+	if(list_empty(&msg_3)) return -1; //Error 1: free list of messages empty
+	if(sender == NULL) return -1; //Error 2: No sender specified
+	if(destination == NULL) return -1; //Error 3: no destination specified
 
-	struct msg_t * new_msg = container_of(&msg_3->next, struct msg_t, m_next);
+	struct msg_t * new_msg = container_of(&msg_3->next, struct msg_t, m_next); //Find pointer to first element of free list
 
-	list_del(&msg_3->next);
+	list_del(&msg_3->next); //Remove element from free list
 
-	new_msg->m_sender = sender;
-	m_value = value;
+	new_msg->m_sender = sender; //Assign sender
+	new_msg->m_value = value; //Assign value
 
-	list_add_tail(&(new_msg->m_next), &(destination->t_msgq));
+	list_add(&new_msg->m_next, &destination->t_msgq); //Add message to thread message queue
 
-	return 0;
+	return 0; //Return 0 for success
 }
 
 /* retrieve a message from a message queue */
