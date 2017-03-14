@@ -1,8 +1,8 @@
 
 // Esempio di utilizzo delle liste del Kernel di Linux
 
-#include <stdio.h>
-#include <stdlib.h>
+//#include <stdio.h>
+//#include <stdlib.h>
 #include "listx.h"
 
 //Elemento della lista 

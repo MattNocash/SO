@@ -1,0 +1,43 @@
+##### Progetto MiKABoO di Sistemi Operativi 2016/2017 #####
+
+#####  Phase 1 - Data Strutcures #####
+
+Sviluppato da: Gruppo lso17az30:x:36730
+Membri: Andrea Aldrovandi  0000753302     andrea.aldrovandi4@studio.unibo.it
+        Matteo Cassano     0000658067        matteo.casssano@studio.unibo.it
+        Marcello Mazzoleni 0000758043     marcello.mazzoleni@studio.unibo.it
+        Soukaina Harrati   0000773163       soukaina.harrati@studio.unibo.it
+
+##### Dependencies #####
+
+Il software richiede un compilatore per architettura arm che interpreti
+il linguaggio C, quello utilizzato per lo sviluppo è gcc-arm-none-eabi
+reperibile tramite comando apt-get.
+
+$ sudo apt-get install gcc-arm-none-eabi
+
+L'emulatore che simula una cpu arm è parte del progetto uArm di Marco Melletti,
+reperibile a http://mellotanica.github.io/uARM/.
+
+Una descrizione delle funzioni implementate è disponibile nella cartella ./references
+assieme ad altri file di esempio.
+
+
+##### Compilazione #####
+
+Scaricare il progetto, aprire il terminale e navigare nella directory dove sono presenti
+i file sorgente. Tramite comando $make verrà creata la cartella build, contentente
+gli eseguibili. Tramite comando $make clean verranno eliminati i file .o e .elf
+creati durante la compilazione, mentre con $make cleanall si eliminerà anche i file
+necessari per l'esecuzione su emulatore uArm.
+
+##### Esecuzione #####
+
+Aprire il terminale e invocare il comando $ uarm . Comparirà la finestra principale
+dell'emulatore. Aprire le impostazioni cliccando sull'icona in alto a sinistra, e 
+inserire nella riga core file il file p1test.elf.core.uarm presente nella cartella build
+creatasi dopo la compilazione, inserire poi nella riga symbol table il file p1test.elf.stab.uarm
+presente anch'esso nella cartella build. Tornare poi alla schermata principale e avviare
+la macchina cliccando sul pulsante rosso di accensione. Aprire il terminale 0 dal
+pulsante terminals o tramite la shortcut Alt+0. Premere la freccia verde per eseguire
+il file caricato precedentemente.
